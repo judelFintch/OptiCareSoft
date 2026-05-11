@@ -13,8 +13,13 @@ use App\Http\Controllers\Cashier\CashierController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Optical\OpticalController;
 use App\Http\Controllers\Pharmacy\PharmacyController;
+use App\Http\Controllers\Pharmacy\PharmacySaleController;
+use App\Http\Controllers\Pharmacy\StockController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -71,12 +76,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [OpticalController::class, 'index'])->name('index');
         Route::resource('orders', \App\Http\Controllers\Optical\OpticalOrderController::class);
         Route::patch('orders/{order}/status', [OpticalController::class, 'updateStatus'])->name('orders.status');
+        Route::post('orders/{order}/deposit', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'addDeposit'])->name('orders.deposit');
+        Route::patch('orders/{order}/deliver', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'deliver'])->name('orders.deliver');
+        // Stock optique
+        Route::get('/stock', [\App\Http\Controllers\Optical\OpticalStockController::class, 'index'])->name('stock.index');
+        Route::post('/stock/frames', [\App\Http\Controllers\Optical\OpticalStockController::class, 'storeFrame'])->name('stock.frames');
+        Route::post('/stock/lenses', [\App\Http\Controllers\Optical\OpticalStockController::class, 'storeLens'])->name('stock.lenses');
     });
 
     // Pharmacy
     Route::prefix('pharmacy')->name('pharmacy.')->group(function () {
         Route::get('/', [PharmacyController::class, 'index'])->name('index');
         Route::resource('products', \App\Http\Controllers\Pharmacy\ProductController::class);
+        Route::resource('sales', PharmacySaleController::class)->only(['index', 'create', 'store', 'show']);
+        Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+        Route::post('/stock', [StockController::class, 'store'])->name('stock.store');
     });
 
     // Cashier
@@ -95,7 +109,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/daily', [ReportController::class, 'daily'])->name('daily');
         Route::get('/daily/pdf', [ReportController::class, 'dailyPdf'])->name('daily.pdf');
         Route::get('/financial', [ReportController::class, 'financial'])->name('financial');
+        Route::get('/financial/export', [ReportController::class, 'exportFinancialExcel'])->name('export.financial');
         Route::get('/patients', [ReportController::class, 'patients'])->name('patients');
+        Route::get('/patients/export', [ReportController::class, 'exportPatientsExcel'])->name('export.patients');
     });
 
     // Admin
@@ -104,6 +120,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('settings', [SettingController::class, 'index'])->name('settings');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('activity-log', fn() => view('pages.admin.activity-log'))->name('activity-log');
+
+        // Roles
+        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
+        Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+
+        // Services & tarifs
+        Route::resource('services', ServiceController::class)->names('services');
+
+        // Devises
+        Route::resource('currencies', CurrencyController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update'])
+            ->names('currencies');
     });
 
 });
