@@ -93,6 +93,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/daily', [ReportController::class, 'daily'])->name('daily');
+        Route::get('/daily/pdf', [ReportController::class, 'dailyPdf'])->name('daily.pdf');
         Route::get('/financial', [ReportController::class, 'financial'])->name('financial');
         Route::get('/patients', [ReportController::class, 'patients'])->name('patients');
     });
