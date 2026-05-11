@@ -9,6 +9,9 @@
                     <p class="mt-2 text-sm text-slate-500">Médecin: {{ $consultation->doctor?->name }} · Statut: {{ $consultation->status?->value ?? $consultation->status }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    @can('update', $consultation)
+                        <a href="{{ route('consultations.exams.edit', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Examens</a>
+                    @endcan
                     @can('medical_prescriptions.create')
                         <a href="{{ route('consultations.medical-prescriptions.create', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ordonnance médicale</a>
                     @endcan
@@ -35,6 +38,24 @@
                 <div><dt class="font-medium text-slate-500">Constats</dt><dd class="mt-1 text-slate-900">{{ $consultation->clinical_findings ?: '—' }}</dd></div>
                 <div><dt class="font-medium text-slate-500">Plan</dt><dd class="mt-1 text-slate-900">{{ $consultation->treatment_plan ?: '—' }}</dd></div>
             </dl>
+        </section>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-base font-semibold text-slate-900">Examens</h3>
+            <div class="mt-4 grid gap-4 text-sm md:grid-cols-3">
+                <div class="rounded-md bg-slate-50 p-4">
+                    <p class="font-medium text-slate-900">Acuité visuelle</p>
+                    <p class="mt-2 text-slate-600">OD: {{ $consultation->visualAcuity?->right_eye_sc ?: '—' }} · OG: {{ $consultation->visualAcuity?->left_eye_sc ?: '—' }}</p>
+                </div>
+                <div class="rounded-md bg-slate-50 p-4">
+                    <p class="font-medium text-slate-900">Réfraction</p>
+                    <p class="mt-2 text-slate-600">OD: {{ $consultation->refraction?->right_sphere ?: '—' }} · OG: {{ $consultation->refraction?->left_sphere ?: '—' }}</p>
+                </div>
+                <div class="rounded-md bg-slate-50 p-4">
+                    <p class="font-medium text-slate-900">Pression</p>
+                    <p class="mt-2 text-slate-600">OD: {{ $consultation->eyePressure?->right_eye_pressure ?: '—' }} · OG: {{ $consultation->eyePressure?->left_eye_pressure ?: '—' }}</p>
+                </div>
+            </div>
         </section>
 
         <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
