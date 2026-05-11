@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
 
-            $table->index(['stockable_type', 'stockable_id']);
         });
     }
 
