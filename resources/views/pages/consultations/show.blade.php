@@ -9,6 +9,7 @@
                     <p class="mt-2 text-sm text-slate-500">Médecin: {{ $consultation->doctor?->name }} · Statut: {{ $consultation->status?->value ?? $consultation->status }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('consultations.pdf', $consultation) }}" target="_blank" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Fiche PDF</a>
                     @can('update', $consultation)
                         <a href="{{ route('consultations.exams.edit', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Examens</a>
                     @endcan
@@ -22,6 +23,9 @@
                         <a href="{{ route('consultations.edit', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Modifier</a>
                     @endcan
                     @can('sign', $consultation)
+                        <form method="POST" action="{{ route('consultations.complete', $consultation) }}">@csrf @method('PATCH')
+                            <button class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Terminer</button>
+                        </form>
                         <form method="POST" action="{{ route('consultations.sign', $consultation) }}">@csrf @method('PATCH')
                             <button class="rounded-md bg-[#0f4c81] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b3f6d]">Signer</button>
                         </form>

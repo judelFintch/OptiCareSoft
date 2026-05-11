@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Consultations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
+use App\Models\Setting;
 use App\Models\Visit;
 use App\Services\ConsultationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
@@ -106,5 +108,28 @@ class ConsultationController extends Controller
         $this->authorize('update', $consultation);
         $this->consultationService->completeConsultation($consultation);
         return back()->with('success', 'Consultation marquée comme terminée.');
+    }
+
+    public function pdf(Consultation $consultation)
+    {
+        $this->authorize('view', $consultation);
+
+        $consultation->load([
+            'patient', 'doctor', 'visit',
+            'visualAcuity', 'refraction', 'eyePressure',
+            'medicalPrescriptions.items', 'opticalPrescriptions',
+        ]);
+
+        $settings = [
+            'clinic_name' => Setting::get('clinic_name', 'OptiCare Soft'),
+            'clinic_slogan' => Setting::get('clinic_slogan', 'La solution intelligente pour gérer votre cabinet ophtalmologique.'),
+            'clinic_address' => Setting::get('clinic_address', ''),
+            'clinic_phone' => Setting::get('clinic_phone', ''),
+            'clinic_email' => Setting::get('clinic_email', ''),
+        ];
+
+        return Pdf::loadView('pdf.consultation', compact('consultation', 'settings'))
+            ->setPaper('a4')
+            ->stream($consultation->consultation_code . '.pdf');
     }
 }
