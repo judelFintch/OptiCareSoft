@@ -9,6 +9,9 @@
                     <p class="mt-2 text-sm text-slate-500">Médecin: {{ $consultation->doctor?->name }} · Statut: {{ $consultation->status?->value ?? $consultation->status }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    @can('medical_prescriptions.create')
+                        <a href="{{ route('consultations.medical-prescriptions.create', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ordonnance médicale</a>
+                    @endcan
                     @can('optical_prescriptions.create')
                         <a href="{{ route('consultations.optical-prescriptions.create', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Prescription optique</a>
                     @endcan
@@ -50,6 +53,26 @@
                     </div>
                 @empty
                     <p class="py-3 text-sm text-slate-500">Aucune prescription optique.</p>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-base font-semibold text-slate-900">Ordonnances médicales</h3>
+            <div class="mt-4 divide-y divide-slate-100">
+                @forelse($consultation->medicalPrescriptions as $prescription)
+                    <div class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="font-medium text-slate-900">{{ $prescription->prescription_number }}</p>
+                            <p class="text-sm text-slate-500">{{ $prescription->items_count ?? $prescription->items->count() }} médicament(s) · Valide jusqu'au {{ $prescription->valid_until?->format('d/m/Y') ?: '—' }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ route('medical-prescriptions.show', $prescription) }}" class="text-sm font-medium text-[#0f4c81] hover:underline">Ouvrir</a>
+                            <a href="{{ route('medical-prescriptions.pdf', $prescription) }}" target="_blank" class="text-sm font-medium text-[#0f4c81] hover:underline">PDF</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="py-3 text-sm text-slate-500">Aucune ordonnance médicale.</p>
                 @endforelse
             </div>
         </section>
