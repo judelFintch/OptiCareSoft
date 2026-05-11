@@ -181,6 +181,22 @@ class OpticalOrderController extends Controller
         return back()->with('success', 'Acompte de ' . number_format($validated['amount'], 2) . ' enregistré.');
     }
 
+    public function prescriptionsForPatient(Request $request)
+    {
+        $this->authorize('optical_orders.manage');
+
+        $prescriptions = OpticalPrescription::where('patient_id', $request->patient_id)
+            ->latest()
+            ->get(['id', 'created_at', 'right_sphere', 'left_sphere'])
+            ->map(fn ($rx) => [
+                'id'    => $rx->id,
+                'label' => 'Ordonnance du ' . $rx->created_at->format('d/m/Y')
+                         . ' (OD ' . ($rx->right_sphere ?? '—') . ' / OG ' . ($rx->left_sphere ?? '—') . ')',
+            ]);
+
+        return response()->json($prescriptions);
+    }
+
     public function pdf(OpticalOrder $order)
     {
         $this->authorize('optical_orders.view');

@@ -35,7 +35,7 @@
                 @if($order->expected_date)
                     <div class="info-row"><span class="info-label">Date prévue</span><span class="info-value">{{ \Carbon\Carbon::parse($order->expected_date)->format('d/m/Y') }}</span></div>
                 @endif
-                <div class="info-row"><span class="info-label">Statut</span><span class="info-value"><span class="status-badge">{{ ['pending'=>'En attente','in_progress'=>'En cours','ready'=>'Prête','delivered'=>'Livrée','cancelled'=>'Annulée'][$order->status?->value ?? $order->status] ?? $order->status }}</span></span></div>
+                <div class="info-row"><span class="info-label">Statut</span><span class="info-value"><span class="status-badge">{{ ($order->status instanceof \App\Enums\OpticalOrderStatus ? $order->status : \App\Enums\OpticalOrderStatus::from($order->status))->label() }}</span></span></div>
                 @if($order->supplier)
                     <div class="info-row"><span class="info-label">Fournisseur</span><span class="info-value">{{ $order->supplier->name }}</span></div>
                 @endif

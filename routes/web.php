@@ -83,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('orders/{order}/deposit', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'addDeposit'])->name('orders.deposit');
         Route::patch('orders/{order}/deliver', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'deliver'])->name('orders.deliver');
         Route::get('orders/{order}/pdf', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'pdf'])->name('orders.pdf');
+        Route::get('prescriptions-for-patient', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'prescriptionsForPatient'])->name('prescriptions-for-patient');
         // Stock optique
         Route::get('/stock', [\App\Http\Controllers\Optical\OpticalStockController::class, 'index'])->name('stock.index');
         Route::post('/stock/frames', [\App\Http\Controllers\Optical\OpticalStockController::class, 'storeFrame'])->name('stock.frames');

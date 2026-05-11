@@ -6,7 +6,8 @@
     </div>
 
     <form method="POST" action="{{ route('optical.orders.store') }}"
-          x-data="opticalOrder()" class="grid gap-6 lg:grid-cols-3">
+          x-data="opticalOrder()" class="grid gap-6 lg:grid-cols-3"
+          @submit.prevent="$el.submit()">
         @csrf
 
         <div class="lg:col-span-2 space-y-5">
@@ -17,7 +18,7 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-1">Patient <span class="text-red-500">*</span></label>
-                        <select name="patient_id" required
+                        <select name="patient_id" x-model="patientId" @change="loadPrescriptions" required
                                 class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:ring-[#0f4c81]">
                             <option value="">Choisir un patient…</option>
                             @foreach($patients as $p)
@@ -33,7 +34,11 @@
                         <select name="optical_prescription_id"
                                 class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:ring-[#0f4c81]">
                             <option value="">— Aucune —</option>
+                            <template x-for="rx in prescriptions" :key="rx.id">
+                                <option :value="rx.id" x-text="rx.label"></option>
+                            </template>
                         </select>
+                        <p x-show="loadingRx" class="mt-1 text-xs text-slate-400">Chargement…</p>
                     </div>
                 </div>
             </div>
@@ -229,23 +234,44 @@
     <script>
     function opticalOrder() {
         return {
-            frameId: '', rightLensId: '', leftLensId: '',
-            priceFrame: 0, priceLenses: 0, deposit: 0,
+            frameId: '{{ old('frame_id', '') }}',
+            rightLensId: '{{ old('right_lens_id', '') }}',
+            leftLensId: '{{ old('left_lens_id', '') }}',
+            patientId: '{{ old('patient_id', '') }}',
+            prescriptions: [],
+            loadingRx: false,
+            priceFrame: {{ old('price_frame', 0) }},
+            priceLenses: {{ old('price_lenses', 0) }},
+            deposit: {{ old('deposit_paid', 0) }},
             get total() { return this.priceFrame + this.priceLenses; },
             get remaining() { return Math.max(0, this.total - this.deposit); },
             calcTotal() {},
+            async loadPrescriptions() {
+                if (!this.patientId) { this.prescriptions = []; return; }
+                this.loadingRx = true;
+                try {
+                    const res = await fetch(`{{ url('optical/prescriptions-for-patient') }}?patient_id=${this.patientId}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    this.prescriptions = await res.json();
+                } finally {
+                    this.loadingRx = false;
+                }
+            },
             updatePrice() {
                 const getPrice = (sel, id) => {
+                    if (!id) return 0;
                     const opt = sel.querySelector(`option[value="${id}"]`);
                     return opt ? parseFloat(opt.dataset.price || 0) : 0;
                 };
-                if (this.frameId) {
-                    const frameSel = document.querySelector('select[name="frame_id"]');
-                    this.priceFrame = getPrice(frameSel, this.frameId);
-                }
+                const frameSel = document.querySelector('select[name="frame_id"]');
                 const rSel = document.querySelector('select[name="right_lens_id"]');
                 const lSel = document.querySelector('select[name="left_lens_id"]');
+                if (this.frameId) this.priceFrame = getPrice(frameSel, this.frameId);
                 this.priceLenses = getPrice(rSel, this.rightLensId) + getPrice(lSel, this.leftLensId);
+            },
+            init() {
+                if (this.patientId) this.loadPrescriptions();
             }
         }
     }

@@ -56,6 +56,90 @@
             </section>
         </div>
 
+        {{-- Consultations --}}
+        @if($patient->consultations->count())
+        <section class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
+                <h3 class="text-base font-semibold text-slate-900">Consultations ({{ $patient->consultations->count() }})</h3>
+                @can('consultations.create')
+                    <a href="{{ route('consultations.create', ['patient_id' => $patient->id]) }}"
+                       class="rounded-lg bg-[#0f4c81] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0b3f6d]">
+                        + Nouvelle
+                    </a>
+                @endcan
+            </div>
+            <table class="min-w-full divide-y divide-slate-100 text-sm">
+                <thead class="text-xs font-semibold uppercase text-slate-500 bg-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Date</th>
+                        <th class="px-4 py-3 text-left">Code</th>
+                        <th class="px-4 py-3 text-left">Médecin</th>
+                        <th class="px-4 py-3 text-left">Diagnostic</th>
+                        <th class="px-4 py-3 text-left">Statut</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach($patient->consultations->take(10) as $c)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 text-slate-500 text-xs">{{ $c->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-slate-600">{{ $c->consultation_code }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ $c->doctor?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-slate-700">{{ $c->primary_diagnosis ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                @php $cs = $c->status instanceof \App\Enums\ConsultationStatus ? $c->status->value : $c->status; @endphp
+                                <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+                                    {{ in_array($cs, ['signed','completed']) ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                    {{ $cs ?? '—' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="{{ route('consultations.show', $c) }}" class="text-xs font-medium text-[#0f4c81] hover:underline">Voir</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </section>
+        @endif
+
+        {{-- Ordonnances optiques --}}
+        @if($patient->opticalPrescriptions->count())
+        <section class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+                <h3 class="text-base font-semibold text-slate-900">Ordonnances optiques ({{ $patient->opticalPrescriptions->count() }})</h3>
+            </div>
+            <table class="min-w-full divide-y divide-slate-100 text-sm">
+                <thead class="text-xs font-semibold uppercase text-slate-500 bg-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Date</th>
+                        <th class="px-4 py-3 text-center">OD Sph</th>
+                        <th class="px-4 py-3 text-center">OD Cyl</th>
+                        <th class="px-4 py-3 text-center">OG Sph</th>
+                        <th class="px-4 py-3 text-center">OG Cyl</th>
+                        <th class="px-4 py-3 text-center">DP</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach($patient->opticalPrescriptions->take(5) as $rx)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 text-slate-500 text-xs">{{ $rx->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 text-center text-slate-700">{{ $rx->right_sphere ?? '—' }}</td>
+                            <td class="px-4 py-3 text-center text-slate-700">{{ $rx->right_cylinder ?? '—' }}</td>
+                            <td class="px-4 py-3 text-center text-slate-700">{{ $rx->left_sphere ?? '—' }}</td>
+                            <td class="px-4 py-3 text-center text-slate-700">{{ $rx->left_cylinder ?? '—' }}</td>
+                            <td class="px-4 py-3 text-center text-slate-700">{{ $rx->pupillary_distance ?? '—' }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="{{ route('optical-prescriptions.show', $rx) }}" class="text-xs font-medium text-[#0f4c81] hover:underline">Voir</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </section>
+        @endif
+
         {{-- Documents --}}
         <section class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">

@@ -110,4 +110,31 @@
         </div>
 
     </div>
+
+    {{-- Graphique revenus 6 mois --}}
+    @if(count($monthlyRevenue['labels'] ?? []))
+    <div class="mt-6 card p-6">
+        <h3 class="text-sm font-semibold text-slate-700 mb-4">Revenus — 6 derniers mois</h3>
+        <div id="chart-revenue-trend" class="h-56"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+    (function() {
+        const labels = @json($monthlyRevenue['labels']);
+        const data   = @json($monthlyRevenue['data']);
+        new ApexCharts(document.getElementById('chart-revenue-trend'), {
+            chart: { type: 'area', height: '100%', toolbar: { show: false }, fontFamily: 'inherit', sparkline: { enabled: false } },
+            series: [{ name: 'Recettes', data }],
+            xaxis: { categories: labels },
+            colors: ['#0f4c81'],
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
+            stroke: { curve: 'smooth', width: 2 },
+            dataLabels: { enabled: false },
+            tooltip: { y: { formatter: v => v.toLocaleString('fr-FR', { minimumFractionDigits: 0 }) } },
+            grid: { borderColor: '#f1f5f9' },
+        }).render();
+    })();
+    </script>
+    @endif
 </div>

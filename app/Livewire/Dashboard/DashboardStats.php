@@ -9,6 +9,8 @@ use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Visit;
 use App\Services\ReportService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class DashboardStats extends Component
@@ -69,6 +71,22 @@ class DashboardStats extends Component
                 'color'   => $v->status->color(),
             ])
             ->toArray();
+
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "strftime('%Y-%m', paid_at)"
+            : "DATE_FORMAT(paid_at, '%Y-%m')";
+
+        $trend = Payment::where('paid_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
+            ->select(DB::raw("$monthExpr as month"), DB::raw('SUM(amount) as total'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        $this->monthlyRevenue = [
+            'labels' => $trend->keys()->values()->toArray(),
+            'data'   => $trend->values()->map(fn($v) => round((float) $v, 2))->toArray(),
+        ];
     }
 
     public function render()

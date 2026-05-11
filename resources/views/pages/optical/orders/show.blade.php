@@ -18,34 +18,32 @@
                     </div>
                     <div class="flex items-center gap-3">
                         @php
-                            $statusColors = [
-                                'pending'    => 'bg-yellow-100 text-yellow-800',
-                                'in_progress'=> 'bg-blue-100 text-blue-800',
-                                'ready'      => 'bg-green-100 text-green-800',
-                                'delivered'  => 'bg-slate-100 text-slate-700',
-                                'cancelled'  => 'bg-red-100 text-red-700',
+                            $statusObj = $order->status instanceof \App\Enums\OpticalOrderStatus
+                                ? $order->status
+                                : \App\Enums\OpticalOrderStatus::from($order->status);
+                            $s = $statusObj->value;
+                            $colorMap = [
+                                'yellow' => 'bg-yellow-100 text-yellow-800',
+                                'blue'   => 'bg-blue-100 text-blue-800',
+                                'purple' => 'bg-purple-100 text-purple-800',
+                                'teal'   => 'bg-teal-100 text-teal-800',
+                                'green'  => 'bg-green-100 text-green-800',
+                                'red'    => 'bg-red-100 text-red-800',
                             ];
-                            $statusLabels = [
-                                'pending'    => 'En attente',
-                                'in_progress'=> 'En cours',
-                                'ready'      => 'Prête',
-                                'delivered'  => 'Livrée',
-                                'cancelled'  => 'Annulée',
-                            ];
-                            $s = $order->status instanceof \App\Enums\OpticalOrderStatus ? $order->status->value : $order->status;
                         @endphp
-                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $statusColors[$s] ?? 'bg-slate-100 text-slate-600' }}">
-                            {{ $statusLabels[$s] ?? $s }}
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $colorMap[$statusObj->color()] ?? 'bg-slate-100 text-slate-600' }}">
+                            {{ $statusObj->label() }}
                         </span>
                         @can('optical_orders.manage')
                             @if(!in_array($s, ['delivered','cancelled']))
                                 <form method="POST" action="{{ route('optical.orders.status', $order) }}" class="flex items-center gap-2">
                                     @csrf @method('PATCH')
                                     <select name="status" class="rounded-lg border-slate-300 text-sm shadow-sm focus:ring-[#0f4c81]">
-                                        <option value="pending"     {{ $s==='pending'     ? 'selected':'' }}>En attente</option>
-                                        <option value="in_progress" {{ $s==='in_progress' ? 'selected':'' }}>En cours</option>
-                                        <option value="ready"       {{ $s==='ready'       ? 'selected':'' }}>Prête</option>
-                                        <option value="cancelled"   {{ $s==='cancelled'   ? 'selected':'' }}>Annulée</option>
+                                        <option value="pending"       {{ $s==='pending'       ? 'selected':'' }}>En attente</option>
+                                        <option value="ordered"       {{ $s==='ordered'       ? 'selected':'' }}>Commandé</option>
+                                        <option value="in_production" {{ $s==='in_production' ? 'selected':'' }}>En fabrication</option>
+                                        <option value="ready"         {{ $s==='ready'         ? 'selected':'' }}>Prêt</option>
+                                        <option value="cancelled"     {{ $s==='cancelled'     ? 'selected':'' }}>Annulé</option>
                                     </select>
                                     <button class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200">Mettre à jour</button>
                                 </form>
@@ -164,7 +162,7 @@
                         </form>
                     @endif
 
-                    @if(in_array($s, ['ready']) && $order->remaining_amount == 0)
+                    @if($s === 'ready')
                         <form method="POST" action="{{ route('optical.orders.deliver', $order) }}" class="mt-4">
                             @csrf @method('PATCH')
                             <button class="rounded-lg bg-[#0f4c81] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0b3f6d]">
@@ -258,7 +256,7 @@
                        class="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-center text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Modifier
                     </a>
-                    @if($s !== 'delivered')
+                    @if(!in_array($s, ['delivered', 'cancelled']))
                         <form method="POST" action="{{ route('optical.orders.destroy', $order) }}"
                               onsubmit="return confirm('Supprimer cette commande ?')">
                             @csrf @method('DELETE')
