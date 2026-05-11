@@ -34,6 +34,11 @@
                     <button class="w-full rounded-md bg-[#0f4c81] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b3f6d]">Encaisser</button>
                 </form>
             @endcan
+
+            <div class="mt-4 grid gap-2">
+                <a href="{{ route('cashier.invoices.pdf', $invoice) }}" target="_blank" class="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50">Facture PDF</a>
+                <a href="{{ route('cashier.invoices.receipt', $invoice) }}" target="_blank" class="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50">Reçu PDF</a>
+            </div>
         </section>
     </div>
 </x-opticare-layout>

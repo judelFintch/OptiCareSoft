@@ -64,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('cashier')->name('cashier.')->group(function () {
         Route::get('/', [CashierController::class, 'index'])->name('index');
         Route::resource('invoices', \App\Http\Controllers\Cashier\InvoiceController::class);
+        Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\Cashier\InvoiceController::class, 'invoicePdf'])->name('invoices.pdf');
+        Route::get('invoices/{invoice}/receipt', [\App\Http\Controllers\Cashier\InvoiceController::class, 'receiptPdf'])->name('invoices.receipt');
         Route::post('invoices/{invoice}/payment', [CashierController::class, 'addPayment'])->name('payment');
         Route::patch('invoices/{invoice}/cancel', [CashierController::class, 'cancelInvoice'])->name('cancel');
     });

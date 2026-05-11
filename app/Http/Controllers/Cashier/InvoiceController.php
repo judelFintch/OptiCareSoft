@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Cashier;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Services\BillingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -54,6 +56,42 @@ class InvoiceController extends Controller
     {
         $invoice->load(['patient', 'items', 'payments.receiver', 'currency', 'creator']);
         return view('pages.cashier.invoices.show', compact('invoice'));
+    }
+
+    public function invoicePdf(Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+
+        $invoice->load(['patient', 'items', 'payments.receiver', 'currency', 'creator']);
+        $settings = $this->pdfSettings();
+
+        return Pdf::loadView('pdf.invoice', compact('invoice', 'settings'))
+            ->setPaper('a4')
+            ->stream($invoice->invoice_number . '.pdf');
+    }
+
+    public function receiptPdf(Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+
+        $invoice->load(['patient', 'items', 'payments.receiver', 'currency', 'creator']);
+        $settings = $this->pdfSettings();
+
+        return Pdf::loadView('pdf.receipt', compact('invoice', 'settings'))
+            ->setPaper('a4')
+            ->stream('receipt-' . $invoice->invoice_number . '.pdf');
+    }
+
+    private function pdfSettings(): array
+    {
+        return [
+            'clinic_name' => Setting::get('clinic_name', 'OptiCare Soft'),
+            'clinic_slogan' => Setting::get('clinic_slogan', 'La solution intelligente pour gérer votre cabinet ophtalmologique.'),
+            'clinic_address' => Setting::get('clinic_address', ''),
+            'clinic_phone' => Setting::get('clinic_phone', ''),
+            'clinic_email' => Setting::get('clinic_email', ''),
+            'invoice_footer' => Setting::get('invoice_footer', 'Merci de votre confiance.'),
+        ];
     }
 
     public function edit(Invoice $invoice) { return view('pages.cashier.invoices.edit', compact('invoice')); }
