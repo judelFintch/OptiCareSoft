@@ -1,8 +1,13 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
-import ApexCharts from 'apexcharts';
 
 window.Alpine = Alpine;
-window.ApexCharts = ApexCharts;
+window.loadApexCharts = async () => {
+    if (! window.ApexCharts) {
+        window.ApexCharts = (await import('apexcharts')).default;
+    }
+
+    return window.ApexCharts;
+};
 
 Alpine.start();
