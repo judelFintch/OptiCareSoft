@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -54,8 +55,22 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load('roles');
-        return view('pages.admin.users.show', compact('user'));
+        $user->load(['roles', 'consultations' => fn($q) => $q->latest()->take(10)]);
+
+        $stats = [
+            'consultations' => $user->consultations()->count(),
+            'payments'      => $user->receivedPayments()->count(),
+            'patients'      => $user->createdPatients()->count(),
+            'visits'        => $user->openedVisits()->count(),
+        ];
+
+        $recentActivity = Activity::where('causer_type', User::class)
+            ->where('causer_id', $user->id)
+            ->latest()
+            ->take(15)
+            ->get();
+
+        return view('pages.admin.users.show', compact('user', 'stats', 'recentActivity'));
     }
 
     public function edit(User $user)

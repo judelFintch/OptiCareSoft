@@ -94,7 +94,59 @@ class InvoiceController extends Controller
         ];
     }
 
-    public function edit(Invoice $invoice) { return view('pages.cashier.invoices.edit', compact('invoice')); }
-    public function update(Request $request, Invoice $invoice) { return back(); }
+    public function edit(Invoice $invoice)
+    {
+        $invoice->load(['patient', 'items', 'currency']);
+        return view('pages.cashier.invoices.edit', compact('invoice'));
+    }
+
+    public function update(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'notes'           => 'nullable|string|max:1000',
+            'due_date'        => 'nullable|date',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'items'           => 'nullable|array',
+            'items.*.label'      => 'required_with:items|string|max:255',
+            'items.*.quantity'   => 'required_with:items|integer|min:1',
+            'items.*.unit_price' => 'required_with:items|numeric|min:0',
+        ]);
+
+        $update = [
+            'notes'    => $validated['notes'] ?? null,
+            'due_date' => $validated['due_date'] ?? $invoice->due_date,
+        ];
+
+        if (!$invoice->isPaid() && !$invoice->isCancelled()) {
+            $discount = (float) ($validated['discount_amount'] ?? 0);
+            $items    = $validated['items'] ?? [];
+
+            $subtotal = collect($items)->sum(fn($i) => $i['quantity'] * $i['unit_price']);
+            $total    = max(0, $subtotal - $discount);
+
+            $update += [
+                'subtotal'         => $subtotal,
+                'discount_amount'  => $discount,
+                'total_amount'     => $total,
+                'remaining_amount' => max(0, $total - (float) $invoice->paid_amount),
+            ];
+
+            $invoice->items()->delete();
+            foreach ($items as $item) {
+                $invoice->items()->create([
+                    'label'      => $item['label'],
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total'      => $item['quantity'] * $item['unit_price'],
+                ]);
+            }
+        }
+
+        $invoice->update($update);
+
+        return redirect()->route('cashier.invoices.show', $invoice)
+            ->with('success', 'Facture mise à jour.');
+    }
+
     public function destroy(Invoice $invoice) { return back(); }
 }

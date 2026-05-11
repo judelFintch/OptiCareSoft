@@ -13,6 +13,16 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             RolePermissionSeeder::class,
             AdminUserSeeder::class,
+            SupplierSeeder::class,
+            FrameSeeder::class,
+            LensSeeder::class,
+            PharmacyProductSeeder::class,
+            PatientSeeder::class,
+            AppointmentSeeder::class,
+            VisitConsultationSeeder::class,
+            OpticalOrderSeeder::class,
+            InvoicePaymentSeeder::class,
+            PharmacySaleSeeder::class,
         ]);
     }
 }
