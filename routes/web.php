@@ -6,6 +6,7 @@ use App\Http\Controllers\Patients\PatientController;
 use App\Http\Controllers\Appointments\AppointmentController;
 use App\Http\Controllers\Reception\ReceptionController;
 use App\Http\Controllers\Consultations\ConsultationController;
+use App\Http\Controllers\Consultations\OpticalPrescriptionController;
 use App\Http\Controllers\Cashier\CashierController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Admin\UserController;
@@ -46,6 +47,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('consultations', ConsultationController::class);
     Route::patch('consultations/{consultation}/sign', [ConsultationController::class, 'sign'])->name('consultations.sign');
     Route::patch('consultations/{consultation}/complete', [ConsultationController::class, 'complete'])->name('consultations.complete');
+    Route::get('consultations/{consultation}/optical-prescriptions/create', [OpticalPrescriptionController::class, 'create'])->name('consultations.optical-prescriptions.create');
+    Route::post('consultations/{consultation}/optical-prescriptions', [OpticalPrescriptionController::class, 'store'])->name('consultations.optical-prescriptions.store');
+    Route::get('optical-prescriptions/{prescription}', [OpticalPrescriptionController::class, 'show'])->name('optical-prescriptions.show');
+    Route::get('optical-prescriptions/{prescription}/edit', [OpticalPrescriptionController::class, 'edit'])->name('optical-prescriptions.edit');
+    Route::put('optical-prescriptions/{prescription}', [OpticalPrescriptionController::class, 'update'])->name('optical-prescriptions.update');
+    Route::get('optical-prescriptions/{prescription}/pdf', [OpticalPrescriptionController::class, 'pdf'])->name('optical-prescriptions.pdf');
 
     // Optical
     Route::prefix('optical')->name('optical.')->group(function () {
