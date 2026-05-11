@@ -1,4 +1,4 @@
-<form method="POST" action="{{ $action }}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+<form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     @csrf
     @if($method !== 'POST')
         @method($method)
@@ -58,6 +58,16 @@
         <div class="md:col-span-2">
             <label class="text-sm font-medium text-slate-700">Allergies</label>
             <textarea name="allergies" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm">{{ old('allergies', $patient?->allergies) }}</textarea>
+        </div>
+        <div class="md:col-span-2">
+            <label class="text-sm font-medium text-slate-700">Photo du patient</label>
+            @if($patient?->photo)
+                <div class="mt-1 mb-2">
+                    <img src="{{ Storage::url($patient->photo) }}" alt="Photo" class="h-20 w-20 rounded-full object-cover border border-slate-200">
+                </div>
+            @endif
+            <input type="file" name="photo" accept="image/*" class="mt-1 text-sm text-slate-600">
+            @error('photo') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
 

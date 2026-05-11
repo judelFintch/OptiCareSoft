@@ -36,6 +36,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Patients
     Route::resource('patients', PatientController::class);
+    Route::get('patients/{patient}/pdf', [PatientController::class, 'pdf'])->name('patients.pdf');
+    Route::post('patients/{patient}/documents', [\App\Http\Controllers\Patients\PatientDocumentController::class, 'store'])->name('patients.documents.store');
+    Route::get('patients/{patient}/documents/{document}/download', [\App\Http\Controllers\Patients\PatientDocumentController::class, 'download'])->name('patients.documents.download');
+    Route::delete('patients/{patient}/documents/{document}', [\App\Http\Controllers\Patients\PatientDocumentController::class, 'destroy'])->name('patients.documents.destroy');
 
     // Appointments
     Route::resource('appointments', AppointmentController::class);
@@ -78,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('orders/{order}/status', [OpticalController::class, 'updateStatus'])->name('orders.status');
         Route::post('orders/{order}/deposit', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'addDeposit'])->name('orders.deposit');
         Route::patch('orders/{order}/deliver', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'deliver'])->name('orders.deliver');
+        Route::get('orders/{order}/pdf', [\App\Http\Controllers\Optical\OpticalOrderController::class, 'pdf'])->name('orders.pdf');
         // Stock optique
         Route::get('/stock', [\App\Http\Controllers\Optical\OpticalStockController::class, 'index'])->name('stock.index');
         Route::post('/stock/frames', [\App\Http\Controllers\Optical\OpticalStockController::class, 'storeFrame'])->name('stock.frames');
@@ -112,6 +117,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/financial/export', [ReportController::class, 'exportFinancialExcel'])->name('export.financial');
         Route::get('/patients', [ReportController::class, 'patients'])->name('patients');
         Route::get('/patients/export', [ReportController::class, 'exportPatientsExcel'])->name('export.patients');
+        Route::get('/consultations', [ReportController::class, 'consultations'])->name('consultations');
+        Route::get('/debts', [ReportController::class, 'debts'])->name('debts');
+        Route::get('/debts/export', [ReportController::class, 'exportDebtsExcel'])->name('export.debts');
     });
 
     // Admin
@@ -119,7 +127,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('users', UserController::class)->names('users');
         Route::get('settings', [SettingController::class, 'index'])->name('settings');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
-        Route::get('activity-log', fn() => view('pages.admin.activity-log'))->name('activity-log');
+        Route::get('activity-log', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-log');
 
         // Roles
         Route::get('roles', [RoleController::class, 'index'])->name('roles.index');

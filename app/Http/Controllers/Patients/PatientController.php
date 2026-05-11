@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Patients;
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Services\PatientService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PatientController extends Controller
 {
@@ -89,11 +92,39 @@ class PatientController extends Controller
             'medical_history'         => 'nullable|string',
             'ophthalmic_history'      => 'nullable|string',
             'allergies'               => 'nullable|string',
+            'photo'                   => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('photo')) {
+            if ($patient->photo) {
+                Storage::disk('public')->delete($patient->photo);
+            }
+            $validated['photo'] = $request->file('photo')->store('patients/photos', 'public');
+        }
 
         $this->patientService->updatePatient($patient, $validated);
 
         return redirect()->route('patients.show', $patient)->with('success', 'Dossier patient mis à jour.');
+    }
+
+    public function pdf(Patient $patient)
+    {
+        $this->authorize('view', $patient);
+
+        $patient->load(['consultations.doctor', 'opticalPrescriptions']);
+        $consultations        = $patient->consultations()->with('doctor')->latest()->get();
+        $opticalPrescriptions = $patient->opticalPrescriptions()->latest()->get();
+        $settings = [
+            'clinic_name'   => Setting::get('clinic_name', 'OptiCare Soft'),
+            'clinic_slogan' => Setting::get('clinic_slogan', ''),
+            'clinic_address'=> Setting::get('clinic_address', ''),
+            'clinic_phone'  => Setting::get('clinic_phone', ''),
+            'clinic_email'  => Setting::get('clinic_email', ''),
+        ];
+
+        return Pdf::loadView('pdf.patient', compact('patient', 'consultations', 'opticalPrescriptions', 'settings'))
+            ->setPaper('a4')
+            ->stream('fiche-patient-' . $patient->patient_code . '.pdf');
     }
 
     public function destroy(Patient $patient)

@@ -14,6 +14,14 @@
             <h2 class="text-base font-semibold text-slate-900">Rapport patients</h2>
             <p class="mt-2 text-sm text-slate-500">Nouveaux patients et fréquentation.</p>
         </a>
+        <a href="{{ route('reports.consultations') }}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:border-[#0f4c81]">
+            <h2 class="text-base font-semibold text-slate-900">Rapport consultations</h2>
+            <p class="mt-2 text-sm text-slate-500">Diagnostics fréquents et performance par médecin.</p>
+        </a>
+        <a href="{{ route('reports.debts') }}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:border-red-300">
+            <h2 class="text-base font-semibold text-slate-900">Dettes patients</h2>
+            <p class="mt-2 text-sm text-slate-500">Factures impayées et soldes restants.</p>
+        </a>
     </div>
 
     <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

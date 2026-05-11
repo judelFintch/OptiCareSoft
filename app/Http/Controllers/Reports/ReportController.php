@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\Patient;
 use App\Models\Payment;
@@ -93,6 +94,54 @@ class ReportController extends Controller
 
         return (new FastExcel($payments))
             ->download('rapport-financier-' . $from->format('Y-m-d') . '-' . $to->format('Y-m-d') . '.xlsx');
+    }
+
+    public function consultations(Request $request)
+    {
+        $this->authorize('reports.view');
+
+        $from   = $request->from ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to     = $request->to   ? Carbon::parse($request->to)   : now()->endOfMonth();
+        $report = $this->reportService->getConsultationReport($from, $to);
+        return view('pages.reports.consultations', compact('report', 'from', 'to'));
+    }
+
+    public function debts(Request $request)
+    {
+        $this->authorize('reports.view');
+
+        $debtors = Invoice::with(['patient'])
+            ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::PartiallyPaid])
+            ->where('remaining_amount', '>', 0)
+            ->orderByDesc('remaining_amount')
+            ->get();
+
+        $total = $debtors->sum('remaining_amount');
+
+        return view('pages.reports.debts', compact('debtors', 'total'));
+    }
+
+    public function exportDebtsExcel(Request $request)
+    {
+        $this->authorize('reports.export');
+
+        $debtors = Invoice::with(['patient'])
+            ->whereIn('status', [InvoiceStatus::Unpaid, InvoiceStatus::PartiallyPaid])
+            ->where('remaining_amount', '>', 0)
+            ->orderByDesc('remaining_amount')
+            ->get()
+            ->map(fn ($inv) => [
+                'Facture'        => $inv->invoice_number,
+                'Patient'        => $inv->patient?->full_name ?? '—',
+                'Code patient'   => $inv->patient?->patient_code ?? '—',
+                'Total'          => number_format($inv->total_amount, 2),
+                'Payé'           => number_format($inv->paid_amount, 2),
+                'Reste à payer'  => number_format($inv->remaining_amount, 2),
+                'Date facture'   => $inv->issued_at?->format('d/m/Y'),
+            ]);
+
+        return (new FastExcel($debtors))
+            ->download('rapport-dettes-' . now()->format('Y-m-d') . '.xlsx');
     }
 
     public function exportPatientsExcel(Request $request)
