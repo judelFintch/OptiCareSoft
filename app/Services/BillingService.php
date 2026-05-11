@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
+use App\Models\Consultation;
 use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\Visit;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +67,43 @@ class BillingService
         $this->recalculate($invoice);
 
         return $line;
+    }
+
+    public function createConsultationInvoice(Consultation $consultation, User $creator): Invoice
+    {
+        $existingInvoice = Invoice::with('items')
+            ->where('consultation_id', $consultation->id)
+            ->where('invoice_type', InvoiceType::Consultation->value)
+            ->where('status', '!=', InvoiceStatus::Cancelled->value)
+            ->first();
+
+        if ($existingInvoice) {
+            return $existingInvoice;
+        }
+
+        return DB::transaction(function () use ($consultation, $creator) {
+            $invoice = $this->createInvoice(
+                $consultation->patient,
+                InvoiceType::Consultation->value,
+                $creator,
+                $consultation->visit,
+                [
+                    'consultation_id' => $consultation->id,
+                    'notes' => 'Facture générée depuis la consultation ' . $consultation->consultation_code,
+                ]
+            );
+
+            $this->addItem($invoice, [
+                'item_type' => Consultation::class,
+                'item_id' => $consultation->id,
+                'label' => 'Consultation ophtalmologique',
+                'description' => $consultation->consultation_code,
+                'quantity' => 1,
+                'unit_price' => (float) Setting::get('consultation_fee', 0),
+            ]);
+
+            return $invoice->fresh(['items']);
+        });
     }
 
     public function removeItem(InvoiceItem $item): void

@@ -22,6 +22,7 @@ class SettingsSeeder extends Seeder
             // System
             ['key' => 'appointment_duration', 'value' => '30',    'group' => 'system', 'type' => 'integer'],
             ['key' => 'currency_code',        'value' => 'CDF',   'group' => 'system', 'type' => 'string'],
+            ['key' => 'consultation_fee',     'value' => '0',     'group' => 'billing', 'type' => 'decimal'],
             ['key' => 'low_stock_alert',      'value' => '1',     'group' => 'system', 'type' => 'boolean'],
             ['key' => 'expiry_alert_days',    'value' => '30',    'group' => 'system', 'type' => 'integer'],
 

@@ -18,6 +18,7 @@ class Setting extends Model
 
         return match($setting->type) {
             'boolean' => (bool) $setting->value,
+            'decimal' => (float) $setting->value,
             'integer' => (int) $setting->value,
             'json'    => json_decode($setting->value, true),
             default   => $setting->value,

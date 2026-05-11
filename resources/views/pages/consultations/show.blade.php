@@ -10,6 +10,12 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('consultations.pdf', $consultation) }}" target="_blank" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Fiche PDF</a>
+                    @can('invoices.create')
+                        <form method="POST" action="{{ route('consultations.invoice', $consultation) }}">
+                            @csrf
+                            <button class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Facturer</button>
+                        </form>
+                    @endcan
                     @can('update', $consultation)
                         <a href="{{ route('consultations.exams.edit', $consultation) }}" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Examens</a>
                     @endcan
@@ -42,6 +48,37 @@
                 <div><dt class="font-medium text-slate-500">Constats</dt><dd class="mt-1 text-slate-900">{{ $consultation->clinical_findings ?: '—' }}</dd></div>
                 <div><dt class="font-medium text-slate-500">Plan</dt><dd class="mt-1 text-slate-900">{{ $consultation->treatment_plan ?: '—' }}</dd></div>
             </dl>
+        </section>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-4">
+                <h3 class="text-base font-semibold text-slate-900">Facturation</h3>
+                @can('invoices.create')
+                    <form method="POST" action="{{ route('consultations.invoice', $consultation) }}">
+                        @csrf
+                        <button class="rounded-md bg-[#0f4c81] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b3f6d]">Générer la facture</button>
+                    </form>
+                @endcan
+            </div>
+            <div class="mt-4 divide-y divide-slate-100">
+                @forelse($consultation->invoices as $invoice)
+                    <div class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="font-medium text-slate-900">{{ $invoice->invoice_number }}</p>
+                            <p class="text-sm text-slate-500">
+                                {{ number_format((float) $invoice->total_amount, 2, ',', ' ') }} {{ $invoice->currency?->code }}
+                                · Statut: {{ $invoice->status?->label() ?? $invoice->status }}
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ route('cashier.invoices.show', $invoice) }}" class="text-sm font-medium text-[#0f4c81] hover:underline">Ouvrir</a>
+                            <a href="{{ route('cashier.invoices.pdf', $invoice) }}" target="_blank" class="text-sm font-medium text-[#0f4c81] hover:underline">PDF</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="py-3 text-sm text-slate-500">Aucune facture liée à cette consultation.</p>
+                @endforelse
+            </div>
         </section>
 
         <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

@@ -4,15 +4,20 @@ namespace App\Http\Controllers\Consultations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
+use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\Visit;
+use App\Services\BillingService;
 use App\Services\ConsultationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
 {
-    public function __construct(private ConsultationService $consultationService) {}
+    public function __construct(
+        private ConsultationService $consultationService,
+        private BillingService $billingService,
+    ) {}
 
     public function index()
     {
@@ -57,6 +62,7 @@ class ConsultationController extends Controller
             'patient', 'doctor', 'visit',
             'visualAcuity', 'refraction', 'eyePressure',
             'medicalPrescriptions.items', 'opticalPrescriptions',
+            'invoices.currency',
         ]);
         return view('pages.consultations.show', compact('consultation'));
     }
@@ -108,6 +114,19 @@ class ConsultationController extends Controller
         $this->authorize('update', $consultation);
         $this->consultationService->completeConsultation($consultation);
         return back()->with('success', 'Consultation marquée comme terminée.');
+    }
+
+    public function invoice(Consultation $consultation)
+    {
+        $this->authorize('create', Invoice::class);
+
+        $consultation->load(['patient', 'visit']);
+
+        $invoice = $this->billingService->createConsultationInvoice($consultation, auth()->user());
+
+        return redirect()
+            ->route('cashier.invoices.show', $invoice)
+            ->with('success', 'Facture de consultation prête.');
     }
 
     public function pdf(Consultation $consultation)

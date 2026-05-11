@@ -50,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('consultations/{consultation}/exams', [ConsultationExamController::class, 'edit'])->name('consultations.exams.edit');
     Route::put('consultations/{consultation}/exams', [ConsultationExamController::class, 'update'])->name('consultations.exams.update');
     Route::get('consultations/{consultation}/pdf', [ConsultationController::class, 'pdf'])->name('consultations.pdf');
+    Route::post('consultations/{consultation}/invoice', [ConsultationController::class, 'invoice'])->name('consultations.invoice');
     Route::patch('consultations/{consultation}/sign', [ConsultationController::class, 'sign'])->name('consultations.sign');
     Route::patch('consultations/{consultation}/complete', [ConsultationController::class, 'complete'])->name('consultations.complete');
     Route::get('consultations/{consultation}/medical-prescriptions/create', [MedicalPrescriptionController::class, 'create'])->name('consultations.medical-prescriptions.create');

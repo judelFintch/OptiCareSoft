@@ -82,6 +82,11 @@ class Consultation extends Model
         return $this->hasMany(OphthalmicExam::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function isDraft(): bool
     {
         return $this->status === ConsultationStatus::Draft;
