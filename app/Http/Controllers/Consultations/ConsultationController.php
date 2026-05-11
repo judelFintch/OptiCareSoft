@@ -15,7 +15,11 @@ class ConsultationController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Consultation::class);
-        return view('pages.consultations.index');
+        $consultations = Consultation::with(['patient', 'doctor', 'visit'])
+            ->latest()
+            ->paginate(20);
+
+        return view('pages.consultations.index', compact('consultations'));
     }
 
     public function create(Request $request)

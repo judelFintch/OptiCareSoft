@@ -16,7 +16,13 @@ class AppointmentController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Appointment::class);
-        return view('pages.appointments.index');
+        $appointments = Appointment::with(['patient', 'doctor'])
+            ->when(request('date'), fn ($query, $date) => $query->whereDate('appointment_date', $date))
+            ->latest('appointment_date')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('pages.appointments.index', compact('appointments'));
     }
 
     public function create()
@@ -49,12 +55,14 @@ class AppointmentController extends Controller
 
     public function show(Appointment $appointment)
     {
+        $this->authorize('view', $appointment);
         $appointment->load(['patient', 'doctor', 'visit']);
         return view('pages.appointments.show', compact('appointment'));
     }
 
     public function edit(Appointment $appointment)
     {
+        $this->authorize('update', $appointment);
         $doctors  = User::role('Ophthalmologist')->where('is_active', true)->get();
         $patients = Patient::active()->orderBy('last_name')->get();
         return view('pages.appointments.edit', compact('appointment', 'doctors', 'patients'));
@@ -62,6 +70,8 @@ class AppointmentController extends Controller
 
     public function update(Request $request, Appointment $appointment)
     {
+        $this->authorize('update', $appointment);
+
         $validated = $request->validate([
             'appointment_date' => 'required|date',
             'appointment_time' => 'required',
@@ -77,6 +87,7 @@ class AppointmentController extends Controller
 
     public function destroy(Appointment $appointment)
     {
+        $this->authorize('delete', $appointment);
         $this->appointmentService->cancel($appointment, 'Supprimé par ' . auth()->user()->name);
         return redirect()->route('appointments.index')->with('success', 'Rendez-vous annulé.');
     }

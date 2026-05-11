@@ -14,7 +14,13 @@ class PatientController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Patient::class);
-        return view('pages.patients.index');
+        $patients = Patient::query()
+            ->when(request('search'), fn ($query, $term) => $query->search($term))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('pages.patients.index', compact('patients'));
     }
 
     public function create()

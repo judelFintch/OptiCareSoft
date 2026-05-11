@@ -65,7 +65,11 @@ class ReportService
             'new_patients' => Patient::whereBetween('created_at', [$from, $to])->count(),
             'total_visits' => Visit::whereBetween('opened_at', [$from, $to])->count(),
             'by_gender'    => Patient::whereBetween('created_at', [$from, $to])->select('gender', DB::raw('count(*) as count'))->groupBy('gender')->pluck('count', 'gender'),
-            'top_patients' => Patient::withCount('consultations')->having('consultations_count', '>', 0)->orderByDesc('consultations_count')->take(10)->get(['id', 'first_name', 'last_name', 'patient_code']),
+            'top_patients' => Patient::withCount('consultations')
+                ->has('consultations')
+                ->orderByDesc('consultations_count')
+                ->take(10)
+                ->get(['id', 'first_name', 'last_name', 'patient_code']),
         ];
     }
 
@@ -90,8 +94,13 @@ class ReportService
 
     private function getMonthlyTrend(Carbon $from, Carbon $to): array
     {
+        $driver = DB::connection()->getDriverName();
+        $monthExpression = $driver === 'sqlite'
+            ? 'strftime("%Y-%m", paid_at)'
+            : 'DATE_FORMAT(paid_at, "%Y-%m")';
+
         return Payment::whereBetween('paid_at', [$from, $to])
-            ->select(DB::raw('DATE_FORMAT(paid_at, "%Y-%m") as month'), DB::raw('SUM(amount) as total'))
+            ->select(DB::raw($monthExpression . ' as month'), DB::raw('SUM(amount) as total'))
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')

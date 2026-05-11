@@ -15,7 +15,10 @@ class ReceptionController extends Controller
     public function index()
     {
         $this->authorize('visits.view');
-        return view('pages.reception.index');
+        $visits = $this->visitService->getWaitingQueue();
+        $patients = Patient::active()->orderBy('last_name')->take(50)->get();
+
+        return view('pages.reception.index', compact('visits', 'patients'));
     }
 
     public function openVisit(Request $request)
